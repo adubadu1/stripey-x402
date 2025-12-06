@@ -194,6 +194,7 @@ interface UsageEvent {
   id: string;
   customerId: string;
   routeId: string;
+  transactionId?: string;  // Optional: may not exist for failed/pending payments
   timestamp: Date;
   quantity: number;
   unit: 'request' | 'byte' | 'token' | 'second';
@@ -442,7 +443,7 @@ interface Transaction {
   amount: Decimal;
   currency: 'USDC' | 'ETH';
   txHash: string;
-  status: 'pending' | 'confirmed' | 'failed';
+  status: 'PENDING' | 'CONFIRMED' | 'FAILED';
   facilitator: string;
   createdAt: Date;
   confirmedAt?: Date;
@@ -453,11 +454,21 @@ interface UsageEvent {
   id: string;
   customerId: string;
   routeId: string;
-  transactionId: string;
+  transactionId?: string;  // Optional: may not exist for failed/pending payments
   quantity: number;
-  unit: string;
+  unit: 'request' | 'byte' | 'token' | 'second';
   timestamp: Date;
   metadata: Record<string, any>;
+}
+
+// InvoiceLineItem
+interface InvoiceLineItem {
+  id: string;
+  routeId: string;
+  description: string;
+  quantity: number;
+  unitPrice: Decimal;
+  amount: Decimal;
 }
 
 // Invoice
@@ -469,7 +480,7 @@ interface Invoice {
   subtotal: Decimal;
   fees: Decimal;
   total: Decimal;
-  status: 'draft' | 'pending' | 'paid' | 'void';
+  status: 'DRAFT' | 'PENDING' | 'PAID' | 'VOID';
   createdAt: Date;
   paidAt?: Date;
 }
@@ -543,9 +554,9 @@ CREATE TABLE usage_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id UUID REFERENCES customers(id),
   route_id UUID REFERENCES routes(id),
-  transaction_id UUID REFERENCES transactions(id),
+  transaction_id UUID REFERENCES transactions(id),  -- Nullable: may not exist for failed/pending payments
   quantity DECIMAL(20, 8) NOT NULL,
-  unit VARCHAR(20) NOT NULL,
+  unit VARCHAR(20) NOT NULL CHECK (unit IN ('request', 'byte', 'token', 'second')),
   timestamp TIMESTAMPTZ NOT NULL,
   metadata JSONB
 );
