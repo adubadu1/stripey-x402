@@ -1,7 +1,7 @@
 📄 PRODUCT REQUIREMENTS DOCUMENT (PRD)
 Product: Stripey-x402 – "Stripe for x402"
 Owner: Adam Mohib (Founder)
-Version: 0.0
+Version: 1.0
 Date: December 2025
 
 ---
@@ -27,6 +27,7 @@ While x402 introduces a powerful payment primitive (HTTP 402 response → on-cha
 - Easy-to-use SDKs for Node, Python, Go, and JS
 - Alerts, webhooks, API keys, and rate limiting
 - Multi-route protection, multi-pricing, and fraud controls
+-
 
 Without Stripey-x402, developers spend weeks building bespoke infrastructure, making x402 impractical for mainstream adoption. There is no Stripe-grade experience for x402 today.
 
@@ -117,6 +118,11 @@ app.get(
 - Pro: $29/mo + 0.5% volume fee.
 - Enterprise: custom pricing, team permissions, SLA.
 
+**I. Onramp & Fiat Handoff**
+- Hosted handoff from fiat intent to crypto purchase via regulated onramp partners (Coinbase Pay, MoonPay, etc.).
+- Stripey-x402 never touches fiat; users complete KYC and purchase USDC/Base directly into their wallet before any x402 payment executes.
+- SDK + dashboard provide status callbacks so merchants can guide users through onramp completion.
+
 ## 6. User Flows
 **Flow 1: Developer Integrates API**
 1. Install SDK.
@@ -137,6 +143,14 @@ _User experience mirrors Stripe's PaymentIntent loop._
 2. Generates invoice and applies pricing rules.
 3. Fires webhook to merchant and updates dashboard.
 4. Developer exports CSV or syncs to accounting tools (e.g., QuickBooks).
+
+**Flow 4: Cash-to-Crypto Onramp Payment**
+1. End user chooses to pay in cash/fiat within a merchant app that uses Stripey-x402.
+2. Merchant triggers the Stripey-x402 onramp connector, redirecting the user to a regulated onramp (e.g., Coinbase Pay).
+3. User completes KYC, funds the onramp, and purchases USDC (Base) that settles straight into their wallet or delegated smart contract wallet.
+4. Once funds arrive, the merchant resumes the protected API call. The SDK receives the HTTP 402, signs the x402 payment with the funded wallet, and submits it to the facilitator smart contract.
+5. Facilitator confirms settlement on-chain and Stripey-x402 records the transaction; the merchant receives crypto via x402 immediately.
+6. Usage and billing ledgers update, and optional webhooks inform both merchant and end user of payment completion.
 
 ## 7. Technical Requirements
 **Backend Stack (Stripey-x402 Cloud)**
